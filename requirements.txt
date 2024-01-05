@@ -1,0 +1,5 @@
+# discord.py for Discord API interaction
+discord.py==2.3.2
+
+# PyGithub for GitHub API interaction
+PyGithub==2.1.1
