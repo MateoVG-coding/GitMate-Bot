@@ -1,4 +1,4 @@
-[MAIN]
+[MASTER]
 
 # Analyse import fallback blocks. This can be used to support both Python 2 and
 # 3 compatible code, which means that the block might have code that exists
@@ -431,8 +431,10 @@ disable=raw-checker-failed,
         use-symbolic-message-instead,
         use-implicit-booleaness-not-comparison-to-string,
         use-implicit-booleaness-not-comparison-to-zero, 
-        C0114,
-        E0401
+        missing-module-docstring,
+        import-error,
+        missing-final-newline,
+        no-member
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

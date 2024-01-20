@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 bot = discord.Bot()
 
+bot.load_extension('cogs.github_info')
+
 @bot.event
 async def on_ready():
     """Function to notify when the bot is online"""
