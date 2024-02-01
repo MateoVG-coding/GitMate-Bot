@@ -43,6 +43,26 @@ class GithubInfo(commands.Cog):
         else:
             await ctx.respond("Sorry! I could not find the commit you requested.")
 
+    @gh_info.command(name='branches', description='Get list of branches in a repository')
+    @option("owner", description="Enter the owner of the repository")
+    @option("repo", description="Enter the name of the repository")
+    async def list_branches_info(self, ctx, owner, repo):
+        """Command to get list of branches in repo"""
+        url = f"{BASE_URL}/repos/{owner}/{repo}/branches"
+        r = requests.get(url, timeout=20)
+
+        if r.status_code == 200:
+            data = r.json()
+            list_branches = ""
+            for item in data:
+                list_branches += f"📍`{item['name']}`\n\n"
+            embed = discord.Embed(colour=0x541dd3,  description= list_branches)
+            embed.set_author(name=f"Repository: {repo}" ,
+                            url=f"{BASE_URL}/repos/{owner}/{repo}")
+            await ctx.respond(embed=embed)
+        else:
+            await ctx.respond("Sorry! I could not find the repository you requested.")
+
 def setup(bot):
     """Function to setup the cog"""
     bot.add_cog(GithubInfo(bot))
