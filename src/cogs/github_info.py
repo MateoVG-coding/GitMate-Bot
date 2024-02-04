@@ -58,7 +58,7 @@ class GithubInfo(commands.Cog):
                 list_branches += f"📍`{item['name']}`\n\n"
             embed = discord.Embed(colour=0x541dd3,  description= list_branches)
             embed.set_author(name=f"Repository: {repo}" ,
-                            url=f"{BASE_URL}/repos/{owner}/{repo}")
+                            url=f"https://github.com/{owner}/{repo}")
             await ctx.respond(embed=embed)
         else:
             await ctx.respond("Sorry! I could not find the repository you requested.")
