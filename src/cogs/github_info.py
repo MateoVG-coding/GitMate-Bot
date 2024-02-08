@@ -22,7 +22,7 @@ class GithubInfo(commands.Cog):
     async def commit_info(self, ctx, owner, repo, ref):
         """Command to get commit information"""
         url = f"{BASE_URL}/repos/{owner}/{repo}/commits/{ref}"
-        r = requests.get(url, timeout=20)
+        r = requests.get(url, timeout=30)
 
         if r.status_code == 200:
             data = r.json()
@@ -35,7 +35,7 @@ class GithubInfo(commands.Cog):
             embed.add_field(name="Message",
                             value=f"{data['commit']['message']}",
                             inline=False)
-            embed.add_field(name="Date commit",
+            embed.add_field(name="Created at",
                             value=f"{data['commit']['committer']['date']}",
                             inline=False)
             embed.set_thumbnail(url=data['author']['avatar_url'])
@@ -49,7 +49,7 @@ class GithubInfo(commands.Cog):
     async def list_branches_info(self, ctx, owner, repo):
         """Command to get list of branches in repo"""
         url = f"{BASE_URL}/repos/{owner}/{repo}/branches"
-        r = requests.get(url, timeout=20)
+        r = requests.get(url, timeout=30)
 
         if r.status_code == 200:
             data = r.json()
@@ -62,6 +62,44 @@ class GithubInfo(commands.Cog):
             await ctx.respond(embed=embed)
         else:
             await ctx.respond("Sorry! I could not find the repository you requested.")
+
+    @gh_info.command(name='issue', description='Get detailed information on an issue')
+    @option("owner", description="Enter the owner of the repository")
+    @option("repo", description="Enter the name of the repository")
+    @option("issue number", description="Enter the issue number")
+    async def issue_info(self, ctx, owner, repo, issue_number):
+        """Command to get issue information"""
+        url = f"{BASE_URL}/repos/{owner}/{repo}/issues/{issue_number}"
+        r = requests.get(url, timeout=30)
+
+        if r.status_code == 200:
+            data = r.json()
+            embed = discord.Embed(colour=0x541dd3)
+            embed.set_author(name=f"Issue {data['number']}, {data['title']}" ,
+                            url=data['html_url'])
+            embed.add_field(name="Author",
+                            value=f"{data['user']['login']}\n{data['user']['html_url']}",
+                            inline=False)
+            embed.add_field(name="Description",
+                            value=f"{data['body']}",
+                            inline=False)
+            embed.add_field(name="Created at",
+                            value=f"{data['created_at']}",
+                            inline=False)
+            embed.add_field(name="State",
+                            value=f"{data['state']}",
+                            inline=False)
+            if data['state'] == 'closed':
+                embed.add_field(name="Closed by",
+                            value=f"{data['closed_by']['login']}\n{data['closed_by']['html_url']}",
+                            inline=False)
+                embed.add_field(name="Closed at",
+                            value=f"{data['closed_at']}",
+                            inline=False)
+            embed.set_thumbnail(url=data['user']['avatar_url'])
+            await ctx.respond(embed=embed)
+        else:
+            await ctx.respond("Sorry! I could not find the issue you requested.")
 
 def setup(bot):
     """Function to setup the cog"""
