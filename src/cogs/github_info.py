@@ -5,14 +5,16 @@ import requests
 
 BASE_URL = "https://api.github.com"
 
-class GithubLink(discord.ui.View, ):
+class GithubLink(discord.ui.View):
+    """This class add button to embedded messages"""
     def __init__(self, _url: str, _label: str):
         super().__init__()
 
-        self.add_item(discord.ui.Button(label=_label, url=_url, style=discord.ButtonStyle.url, emoji="🔍"))
+        self.add_item(discord.ui.Button(label=_label, url=_url,
+                                        style=discord.ButtonStyle.url, emoji="🔍"))
 
 class GithubInfo(commands.Cog):
-    """This is class contains all the slash commands related to github information"""
+    """This class contains all the slash commands related to github information"""
 
     def __init__(self, bot):
         """Special method when the cog is loaded"""
@@ -39,10 +41,10 @@ class GithubInfo(commands.Cog):
                             value=f"[{data['author']['login']}]({data['author']['html_url']})",
                             inline=False)
             embed.add_field(name="Message",
-                            value=f"{data['commit']['message']}",
+                            value=f"```{data['commit']['message']}```",
                             inline=False)
             embed.add_field(name="Created at",
-                            value=f"{data['commit']['committer']['date']}",
+                            value=f"`{data['commit']['committer']['date']}`",
                             inline=False)
             embed.set_thumbnail(url=data['author']['avatar_url'])
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check commit"))
@@ -63,7 +65,7 @@ class GithubInfo(commands.Cog):
             for item in data:
                 list_branches += f"📍`{item['name']}`\n\n"
             embed = discord.Embed(colour=0x541dd3,  description= list_branches)
-            embed.set_author(name=f"Repository: {repo}" ,
+            embed.set_author(name=f"Repository {repo}" ,
                             url=f"https://github.com/{owner}/{repo}")
             await ctx.respond(embed=embed)
         else:
@@ -87,24 +89,63 @@ class GithubInfo(commands.Cog):
                             value=f"[{data['user']['login']}]({data['user']['html_url']})",
                             inline=False)
             embed.add_field(name="Description",
-                            value=f"{data['body']}",
+                            value=f"```{data['body']}```",
                             inline=False)
             embed.add_field(name="Created at",
-                            value=f"{data['created_at']}",
+                            value=f"`{data['created_at']}`",
                             inline=False)
             embed.add_field(name="State",
-                            value=f"{data['state']}",
+                            value=f"`{data['state']}`",
                             inline=False)
             if data['state'] == 'closed':
                 embed.add_field(name="Closed by",
-                            value=f"[{data['closed_by']['login']}]({data['closed_by']['html_url']})",
+                            value=f"""[{data['closed_by']['login']}](
+                                {data['closed_by']['html_url']})""",
                             inline=False)
                 embed.add_field(name="Closed at",
-                            value=f"{data['closed_at']}",
+                            value=f"`{data['closed_at']}`",
                             inline=False)
             embed.set_thumbnail(url=data['user']['avatar_url'])
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check issue"))
+        else:
+            await ctx.respond("Sorry! I could not find the issue you requested.")
+
+    @gh_info.command(name='release', description='Get detailed information on an release')
+    @option("owner", description="Enter the owner of the repository")
+    @option("repo", description="Enter the name of the repository")
+    @option("tag", description="Enter the tag name")
+    async def release_info(self, ctx, owner, repo, tag):
+        """Command to get release information"""
+        url = f"{BASE_URL}/repos/{owner}/{repo}/releases/tags/{tag}"
+        r = requests.get(url, timeout=30)
+
+        if r.status_code == 200:
+            data = r.json()
+            embed = discord.Embed(colour=0x541dd3)
+            embed.set_author(name=f"Release {data['name']}" ,
+                            url=data['html_url'])
+            embed.add_field(name="Tag",
+                            value=f"`{data['tag_name']}`",
+                            inline=False)
+            embed.add_field(name="Description",
+                            value=f"```{data['body']}```",
+                            inline=False)
+            embed.add_field(name="Author",
+                            value=f"[{data['author']['login']}]({data['author']['html_url']})",
+                            inline=False)
+            embed.add_field(name="Created at",
+                            value=f"`{data['created_at']}`",
+                            inline=False)
+            embed.add_field(name="Published at",
+                            value=f"`{data['published_at']}`",
+                            inline=False)
+            embed.add_field(name="Assets",
+                            value=f"""[Source code (zip)]({data['zipball_url']})\n
+                            [Source code (tar)]({data['tarball_url']})\n""",
+                            inline=False)
+
+            await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check release"))
         else:
             await ctx.respond("Sorry! I could not find the issue you requested.")
 
