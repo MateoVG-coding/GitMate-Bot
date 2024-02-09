@@ -5,6 +5,12 @@ import requests
 
 BASE_URL = "https://api.github.com"
 
+class GithubLink(discord.ui.View, ):
+    def __init__(self, _url: str, _label: str):
+        super().__init__()
+
+        self.add_item(discord.ui.Button(label=_label, url=_url, style=discord.ButtonStyle.url, emoji="🔍"))
+
 class GithubInfo(commands.Cog):
     """This is class contains all the slash commands related to github information"""
 
@@ -39,7 +45,7 @@ class GithubInfo(commands.Cog):
                             value=f"{data['commit']['committer']['date']}",
                             inline=False)
             embed.set_thumbnail(url=data['author']['avatar_url'])
-            await ctx.respond(embed=embed)
+            await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check commit"))
         else:
             await ctx.respond("Sorry! I could not find the commit you requested.")
 
@@ -97,7 +103,8 @@ class GithubInfo(commands.Cog):
                             value=f"{data['closed_at']}",
                             inline=False)
             embed.set_thumbnail(url=data['user']['avatar_url'])
-            await ctx.respond(embed=embed)
+
+            await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check issue"))
         else:
             await ctx.respond("Sorry! I could not find the issue you requested.")
 
