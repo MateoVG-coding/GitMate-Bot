@@ -36,7 +36,7 @@ class GithubInfo(commands.Cog):
             embed.set_author(name=f"Commit {data['sha']}" ,
                             url=data['html_url'])
             embed.add_field(name="Author",
-                            value=f"{data['author']['login']}\n{data['author']['html_url']}",
+                            value=f"[{data['author']['login']}]({data['author']['html_url']})",
                             inline=False)
             embed.add_field(name="Message",
                             value=f"{data['commit']['message']}",
@@ -84,7 +84,7 @@ class GithubInfo(commands.Cog):
             embed.set_author(name=f"Issue {data['number']}, {data['title']}" ,
                             url=data['html_url'])
             embed.add_field(name="Author",
-                            value=f"{data['user']['login']}\n{data['user']['html_url']}",
+                            value=f"[{data['user']['login']}]({data['user']['html_url']})",
                             inline=False)
             embed.add_field(name="Description",
                             value=f"{data['body']}",
@@ -97,7 +97,7 @@ class GithubInfo(commands.Cog):
                             inline=False)
             if data['state'] == 'closed':
                 embed.add_field(name="Closed by",
-                            value=f"{data['closed_by']['login']}\n{data['closed_by']['html_url']}",
+                            value=f"[{data['closed_by']['login']}]({data['closed_by']['html_url']})",
                             inline=False)
                 embed.add_field(name="Closed at",
                             value=f"{data['closed_at']}",
