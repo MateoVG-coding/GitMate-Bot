@@ -35,12 +35,9 @@ class GithubInfo(commands.Cog):
 
         if r.status_code == 200:
             data = r.json()
-            date = datetime.datetime.strptime(data['commit']['committer']['date'],
-                                               "%Y-%m-%dT%H:%M:%SZ")
-            date.strftime('%A %b %d, %Y at %H:%M GMT')
             body = f"""◉ **Author:** [{data['author']['login']}]({data['author']['html_url']})
                        ◉ **Message:** `{data['commit']['message']}`
-                       ◉ **Created at:** `{date}`"""
+                       ◉ **Created at:** `{parse_date(data['commit']['committer']['date'])}`"""
             embed = discord.Embed(colour=0x541dd3, description=body)
             embed.set_author(name=f"Commit {ref}" ,
                             url=data['html_url'])
@@ -80,19 +77,14 @@ class GithubInfo(commands.Cog):
 
         if r.status_code == 200:
             data = r.json()
-            date_open = datetime.datetime.strptime(data['created_at'],
-                                               "%Y-%m-%dT%H:%M:%SZ")
-            date_open.strftime('%A %b %d, %Y at %H:%M GMT')
             body = f"""◉ **Author:** [{data['user']['login']}]({data['user']['html_url']})
                        ◉ **Description:** ```{data['body']}```
-                       ◉ **Created at:** `{date_open}`
+                       ◉ **Created at:** `{parse_date(data['created_at'])}`
                        ◉ **State:** `{data['state']}`"""
             if data['state'] == 'closed':
-                date_closed = datetime.datetime.strptime(data['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
-                date_closed.strftime('%A %b %d, %Y at %H:%M GMT')
                 body += f"""\n◉ **Closed by:** [{data['closed_by']['login']}](
                                 {data['closed_by']['html_url']})
-                            ◉ **Closed at:** `{date_closed}`"""
+                            ◉ **Closed at:** `{parse_date(data['closed_at'])}`"""
             embed = discord.Embed(colour=0x541dd3, description=body)
             embed.set_author(name=f"Issue {data['number']}, {data['title']}" ,
                             url=data['html_url'])
@@ -113,16 +105,11 @@ class GithubInfo(commands.Cog):
 
         if r.status_code == 200:
             data = r.json()
-            date_open = datetime.datetime.strptime(data['created_at'],
-                                               "%Y-%m-%dT%H:%M:%SZ")
-            date_open.strftime('%A %b %d, %Y at %H:%M GMT')
-            date_published = datetime.datetime.strptime(data['published_at'],"%Y-%m-%dT%H:%M:%SZ")
-            date_published.strftime('%A %b %d, %Y at %H:%M GMT')
             body = f"""◉ **Tag:** `{data['tag_name']}`
                        ◉ **Description:** ```{data['body']}```
                        ◉ **Author:** [{data['author']['login']}]({data['author']['html_url']})
-                       ◉ **Created at:** `{date_open}`
-                       ◉ **Published at:** `{date_published}`
+                       ◉ **Created at:** `{parse_date(data['created_at'])}`
+                       ◉ **Published at:** `{parse_date(data['published_at'])}`
                        ◉ **Assets:**\n[Source code (zip)]({data['zipball_url']})
                             [Source code (tar)]({data['tarball_url']})\n"""
             embed = discord.Embed(colour=0x541dd3, description=body)
@@ -136,3 +123,11 @@ class GithubInfo(commands.Cog):
 def setup(bot):
     """Function to setup the cog"""
     bot.add_cog(GithubInfo(bot))
+
+def parse_date(date_string):
+    """Function to parse date from Github API format"""
+    try:
+        date_obj = datetime.datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
+        return date_obj.strftime('%A %b %d, %Y at %H:%M GMT')
+    except ValueError:
+        return "Invalid date format"
