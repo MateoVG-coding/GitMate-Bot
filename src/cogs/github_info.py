@@ -1,7 +1,8 @@
+import datetime
+import requests
 import discord
 from discord.ext import commands
 from discord.commands import SlashCommandGroup, option
-import requests
 
 BASE_URL = "https://api.github.com"
 
@@ -34,18 +35,15 @@ class GithubInfo(commands.Cog):
 
         if r.status_code == 200:
             data = r.json()
-            embed = discord.Embed(colour=0x541dd3)
-            embed.set_author(name=f"Commit {data['sha']}" ,
+            date = datetime.datetime.strptime(data['commit']['committer']['date'],
+                                               "%Y-%m-%dT%H:%M:%SZ")
+            date.strftime('%A %b %d, %Y at %H:%M GMT')
+            body = f"""◉ **Author:** [{data['author']['login']}]({data['author']['html_url']})
+                       ◉ **Message:** `{data['commit']['message']}`
+                       ◉ **Created at:** `{date}`"""
+            embed = discord.Embed(colour=0x541dd3, description=body)
+            embed.set_author(name=f"Commit {ref}" ,
                             url=data['html_url'])
-            embed.add_field(name="Author",
-                            value=f"[{data['author']['login']}]({data['author']['html_url']})",
-                            inline=False)
-            embed.add_field(name="Message",
-                            value=f"```{data['commit']['message']}```",
-                            inline=False)
-            embed.add_field(name="Created at",
-                            value=f"`{data['commit']['committer']['date']}`",
-                            inline=False)
             embed.set_thumbnail(url=data['author']['avatar_url'])
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check commit"))
         else:
@@ -82,29 +80,22 @@ class GithubInfo(commands.Cog):
 
         if r.status_code == 200:
             data = r.json()
-            embed = discord.Embed(colour=0x541dd3)
+            date_open = datetime.datetime.strptime(data['created_at'],
+                                               "%Y-%m-%dT%H:%M:%SZ")
+            date_open.strftime('%A %b %d, %Y at %H:%M GMT')
+            body = f"""◉ **Author:** [{data['user']['login']}]({data['user']['html_url']})
+                       ◉ **Description:** ```{data['body']}```
+                       ◉ **Created at:** `{date_open}`
+                       ◉ **State:** `{data['state']}`"""
+            if data['state'] == 'closed':
+                date_closed = datetime.datetime.strptime(data['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
+                date_closed.strftime('%A %b %d, %Y at %H:%M GMT')
+                body += f"""\n◉ **Closed by:** [{data['closed_by']['login']}](
+                                {data['closed_by']['html_url']})
+                            ◉ **Closed at:** `{date_closed}`"""
+            embed = discord.Embed(colour=0x541dd3, description=body)
             embed.set_author(name=f"Issue {data['number']}, {data['title']}" ,
                             url=data['html_url'])
-            embed.add_field(name="Author",
-                            value=f"[{data['user']['login']}]({data['user']['html_url']})",
-                            inline=False)
-            embed.add_field(name="Description",
-                            value=f"```{data['body']}```",
-                            inline=False)
-            embed.add_field(name="Created at",
-                            value=f"`{data['created_at']}`",
-                            inline=False)
-            embed.add_field(name="State",
-                            value=f"`{data['state']}`",
-                            inline=False)
-            if data['state'] == 'closed':
-                embed.add_field(name="Closed by",
-                            value=f"""[{data['closed_by']['login']}](
-                                {data['closed_by']['html_url']})""",
-                            inline=False)
-                embed.add_field(name="Closed at",
-                            value=f"`{data['closed_at']}`",
-                            inline=False)
             embed.set_thumbnail(url=data['user']['avatar_url'])
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check issue"))
@@ -122,28 +113,21 @@ class GithubInfo(commands.Cog):
 
         if r.status_code == 200:
             data = r.json()
-            embed = discord.Embed(colour=0x541dd3)
+            date_open = datetime.datetime.strptime(data['created_at'],
+                                               "%Y-%m-%dT%H:%M:%SZ")
+            date_open.strftime('%A %b %d, %Y at %H:%M GMT')
+            date_published = datetime.datetime.strptime(data['published_at'],"%Y-%m-%dT%H:%M:%SZ")
+            date_published.strftime('%A %b %d, %Y at %H:%M GMT')
+            body = f"""◉ **Tag:** `{data['tag_name']}`
+                       ◉ **Description:** ```{data['body']}```
+                       ◉ **Author:** [{data['author']['login']}]({data['author']['html_url']})
+                       ◉ **Created at:** `{date_open}`
+                       ◉ **Published at:** `{date_published}`
+                       ◉ **Assets:**\n[Source code (zip)]({data['zipball_url']})
+                            [Source code (tar)]({data['tarball_url']})\n"""
+            embed = discord.Embed(colour=0x541dd3, description=body)
             embed.set_author(name=f"Release {data['name']}" ,
                             url=data['html_url'])
-            embed.add_field(name="Tag",
-                            value=f"`{data['tag_name']}`",
-                            inline=False)
-            embed.add_field(name="Description",
-                            value=f"```{data['body']}```",
-                            inline=False)
-            embed.add_field(name="Author",
-                            value=f"[{data['author']['login']}]({data['author']['html_url']})",
-                            inline=False)
-            embed.add_field(name="Created at",
-                            value=f"`{data['created_at']}`",
-                            inline=False)
-            embed.add_field(name="Published at",
-                            value=f"`{data['published_at']}`",
-                            inline=False)
-            embed.add_field(name="Assets",
-                            value=f"""[Source code (zip)]({data['zipball_url']})\n
-                            [Source code (tar)]({data['tarball_url']})\n""",
-                            inline=False)
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check release"))
         else:
