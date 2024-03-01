@@ -1,3 +1,4 @@
+import base64
 import datetime
 import requests
 import discord
@@ -78,7 +79,7 @@ class GithubInfo(commands.Cog):
         if r.status_code == 200:
             data = r.json()
             body = f"""◉ **Author:** [{data['user']['login']}]({data['user']['html_url']})
-                       ◉ **Description:** ```{data['body']}```
+                       ◉ **Description:** ```{data['body'][:400] + "..."}```
                        ◉ **Created at:** `{parse_date(data['created_at'])}`
                        ◉ **State:** `{data['state']}`"""
             if data['state'] == 'closed':
@@ -106,7 +107,7 @@ class GithubInfo(commands.Cog):
         if r.status_code == 200:
             data = r.json()
             body = f"""◉ **Tag:** `{data['tag_name']}`
-                       ◉ **Description:** ```{data['body']}```
+                       ◉ **Description:** ```{data['body'][:400] + "..."}```
                        ◉ **Author:** [{data['author']['login']}]({data['author']['html_url']})
                        ◉ **Created at:** `{parse_date(data['created_at'])}`
                        ◉ **Published at:** `{parse_date(data['published_at'])}`
@@ -118,7 +119,35 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check release"))
         else:
-            await ctx.respond("Sorry! I could not find the issue you requested.")
+            await ctx.respond("Sorry! I could not find the release you requested.")
+
+    @gh_info.command(name='file', description='Get content file in a repository')
+    @option("owner", description="Enter the owner of the repository")
+    @option("repo", description="Enter the name of the repository")
+    @option("path", description="Enter the path of the file")
+    async def file_info(self, ctx, owner, repo, path):
+        """Command to get content file in repo"""
+        url = f"{BASE_URL}/repos/{owner}/{repo}/contents/{path}"
+        r = requests.get(url, timeout=30)
+
+        if r.status_code == 200:
+            data = r.json()
+            file_content = data['content']
+            file_content_encoding = data.get('encoding')
+            if file_content_encoding == 'base64':
+                file_content = base64.b64decode(file_content).decode()[:600] + "..."
+            body = f"""◉ **Type:** `{data['type']}`
+                       ◉ **Path:** `{data['path']}`
+                       ◉ **Content:** ```{file_content}```
+                       [Get file]({data['download_url']})"""
+
+            embed = discord.Embed(colour=0x541dd3, description=body)
+            embed.set_author(name=f"File {data['name']}" ,
+                            url=data['html_url'])
+
+            await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check file"))
+        else:
+            await ctx.respond("Sorry! I could not find the file you requested.")
 
 def setup(bot):
     """Function to setup the cog"""
