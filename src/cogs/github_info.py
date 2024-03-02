@@ -25,6 +25,34 @@ class GithubInfo(commands.Cog):
     gh_info = SlashCommandGroup(
         "info", "Get detailed information about commits, users, repositories, and more...")
 
+    @gh_info.command(name='user', description='Get detailed information on a user')
+    @option("username", description="Enter the username you are looking for")
+    async def user_info(self, ctx, username):
+        """Command to get user information"""
+        url = f"{BASE_URL}/users/{username}"
+        r = requests.get(url, timeout=30)
+
+        if r.status_code == 200:
+            data = r.json()
+            body = f"""◉ **Name:** {data['name']}
+                       ◉ **Created at:** `{parse_date(data['created_at'])}`
+                       ◉ **Company:** {data['company']}
+                       ◉ **Blog:** {data['blog']}
+                       ◉ **Bio:** ```{data['bio']}```\n
+                       ◉ **Repositories:** {data['public_repos']}
+                       ◉ **Followers:** {data['followers']}
+                       ◉ **Following:** {data['following']}\n
+                       ◉ **Location:** 📍{data['location']}"""
+
+            embed = discord.Embed(colour=0x541dd3, description=body)
+            embed.set_author(name=username,
+                            url=data['html_url'])
+            embed.set_thumbnail(url=data['avatar_url'])
+
+            await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check user"))
+        else:
+            await ctx.respond("🤔 *Sorry! I could not find the user you requested.*")
+
     @gh_info.command(name='commit', description='Get detailed information on a commit')
     @option("owner", description="Enter the owner of the repository")
     @option("repo", description="Enter the name of the repository")
@@ -43,9 +71,10 @@ class GithubInfo(commands.Cog):
             embed.set_author(name=f"Commit {ref}" ,
                             url=data['html_url'])
             embed.set_thumbnail(url=data['author']['avatar_url'])
+
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check commit"))
         else:
-            await ctx.respond("Sorry! I could not find the commit you requested.")
+            await ctx.respond("🤔 *Sorry! I could not find the commit you requested.*")
 
     @gh_info.command(name='branches', description='Get list of branches in a repository')
     @option("owner", description="Enter the owner of the repository")
@@ -58,14 +87,17 @@ class GithubInfo(commands.Cog):
         if r.status_code == 200:
             data = r.json()
             list_branches = ""
+
             for item in data:
                 list_branches += f"📍`{item['name']}`\n\n"
+
             embed = discord.Embed(colour=0x541dd3,  description= list_branches)
             embed.set_author(name=f"Repository {repo}" ,
                             url=f"https://github.com/{owner}/{repo}")
+
             await ctx.respond(embed=embed)
         else:
-            await ctx.respond("Sorry! I could not find the repository you requested.")
+            await ctx.respond("🤔 *Sorry! I could not find the repository you requested.*")
 
     @gh_info.command(name='issue', description='Get detailed information on an issue')
     @option("owner", description="Enter the owner of the repository")
@@ -82,10 +114,12 @@ class GithubInfo(commands.Cog):
                        ◉ **Description:** ```{data['body'][:400] + "..."}```
                        ◉ **Created at:** `{parse_date(data['created_at'])}`
                        ◉ **State:** `{data['state']}`"""
+
             if data['state'] == 'closed':
                 body += f"""\n◉ **Closed by:** [{data['closed_by']['login']}](
                                 {data['closed_by']['html_url']})
                             ◉ **Closed at:** `{parse_date(data['closed_at'])}`"""
+
             embed = discord.Embed(colour=0x541dd3, description=body)
             embed.set_author(name=f"Issue {data['number']}, {data['title']}" ,
                             url=data['html_url'])
@@ -93,7 +127,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check issue"))
         else:
-            await ctx.respond("Sorry! I could not find the issue you requested.")
+            await ctx.respond("🤔 *Sorry! I could not find the issue you requested.*")
 
     @gh_info.command(name='release', description='Get detailed information on an release')
     @option("owner", description="Enter the owner of the repository")
@@ -119,7 +153,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check release"))
         else:
-            await ctx.respond("Sorry! I could not find the release you requested.")
+            await ctx.respond("🤔 *Sorry! I could not find the release you requested.*")
 
     @gh_info.command(name='file', description='Get content of a file in a repository')
     @option("owner", description="Enter the owner of the repository")
@@ -132,10 +166,18 @@ class GithubInfo(commands.Cog):
 
         if r.status_code == 200:
             data = r.json()
+
+            if isinstance(data, list):
+                await ctx.respond("""❌ *Sorry, it seems the path you provided leads
+                                   to a folder rather than a file.*""")
+                return 1
+
             file_content = data['content']
             file_content_encoding = data.get('encoding')
+
             if file_content_encoding == 'base64':
                 file_content = base64.b64decode(file_content).decode()[:600] + "..."
+
             body = f"""◉ **Type:** `{data['type']}`
                        ◉ **Path:** `{data['path']}`
                        ◉ **Content:** ```{file_content}```
@@ -147,7 +189,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check file"))
         else:
-            await ctx.respond("Sorry! I could not find the file you requested.")
+            await ctx.respond("🤔 *Sorry! I could not find the file you requested.*")
 
     @gh_info.command(name='folder', description='Get content of a folder in a repository')
     @option("owner", description="Enter the owner of the repository")
@@ -161,17 +203,20 @@ class GithubInfo(commands.Cog):
         if r.status_code == 200:
             data = r.json()
             file_tree = ""
+
             for item in data:
                 if item['type'] == "dir":
-                    file_tree += f"📁`{item['name']}`\n"
+                    file_tree += f"📁 [`{item['name']}`]({item['html_url']})\n"
                 else:
-                    file_tree += f"📄{item['name']}\n"
-            embed = discord.Embed(colour=0x541dd3,  description=file_tree)
+                    file_tree += f"📄 [{item['name']}]({item['html_url']})\n"
+
+            embed = discord.Embed(colour=0x541dd3,  description= f"**{path}**\n {file_tree}")
             embed.set_author(name=f"Repository {repo}" ,
                             url=f"https://github.com/{owner}/{repo}")
+
             await ctx.respond(embed=embed)
         else:
-            await ctx.respond("Sorry! I could not find the folder you requested.")
+            await ctx.respond("🤔 *Sorry! I could not find the folder you requested.*")
 
     @gh_info.command(name='workflows', description='Get list of workflows in a repository')
     @option("owner", description="Enter the owner of the repository")
@@ -184,14 +229,19 @@ class GithubInfo(commands.Cog):
         if r.status_code == 200:
             data = r.json()
             list_workflows = ""
+
             for item in data['workflows']:
-                list_workflows += f"⚙️`{item['name']}`\n"
-            embed = discord.Embed(colour=0x541dd3,  description="**Workflows:**\n\n" + list_workflows)
+                list_workflows += f"""⚙️  [`{item['name']}`]({item['html_url']})
+                  **({item['state']})**\n"""
+
+            embed = discord.Embed(colour=0x541dd3,
+                                  description="**Workflows:**\n\n" + list_workflows)
             embed.set_author(name=f"Repository {repo}" ,
                             url=f"https://github.com/{owner}/{repo}")
+
             await ctx.respond(embed=embed)
         else:
-            await ctx.respond("Sorry! I could not find the repository you requested.")
+            await ctx.respond("🤔 *Sorry! I could not find the repository you requested.*")
 
 def setup(bot):
     """Function to setup the cog"""
