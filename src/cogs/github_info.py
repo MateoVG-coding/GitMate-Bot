@@ -173,6 +173,26 @@ class GithubInfo(commands.Cog):
         else:
             await ctx.respond("Sorry! I could not find the folder you requested.")
 
+    @gh_info.command(name='workflows', description='Get list of workflows in a repository')
+    @option("owner", description="Enter the owner of the repository")
+    @option("repo", description="Enter the name of the repository")
+    async def list_workflows_info(self, ctx, owner, repo):
+        """Command to get list of workflows in repo"""
+        url = f"{BASE_URL}/repos/{owner}/{repo}/actions/workflows"
+        r = requests.get(url, timeout=30)
+
+        if r.status_code == 200:
+            data = r.json()
+            list_workflows = ""
+            for item in data['workflows']:
+                list_workflows += f"⚙️`{item['name']}`\n"
+            embed = discord.Embed(colour=0x541dd3,  description="**Workflows:**\n\n" + list_workflows)
+            embed.set_author(name=f"Repository {repo}" ,
+                            url=f"https://github.com/{owner}/{repo}")
+            await ctx.respond(embed=embed)
+        else:
+            await ctx.respond("Sorry! I could not find the repository you requested.")
+
 def setup(bot):
     """Function to setup the cog"""
     bot.add_cog(GithubInfo(bot))
