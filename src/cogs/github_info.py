@@ -121,7 +121,7 @@ class GithubInfo(commands.Cog):
         else:
             await ctx.respond("Sorry! I could not find the release you requested.")
 
-    @gh_info.command(name='file', description='Get content file in a repository')
+    @gh_info.command(name='file', description='Get content of a file in a repository')
     @option("owner", description="Enter the owner of the repository")
     @option("repo", description="Enter the name of the repository")
     @option("path", description="Enter the path of the file")
@@ -148,6 +148,30 @@ class GithubInfo(commands.Cog):
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check file"))
         else:
             await ctx.respond("Sorry! I could not find the file you requested.")
+
+    @gh_info.command(name='folder', description='Get content of a folder in a repository')
+    @option("owner", description="Enter the owner of the repository")
+    @option("repo", description="Enter the name of the repository")
+    @option("path", description="Enter the path of the folder")
+    async def folder_info(self, ctx, owner, repo, path):
+        """Command to get content of folder in repo"""
+        url = f"{BASE_URL}/repos/{owner}/{repo}/contents/{path}"
+        r = requests.get(url, timeout=30)
+
+        if r.status_code == 200:
+            data = r.json()
+            file_tree = ""
+            for item in data:
+                if item['type'] == "dir":
+                    file_tree += f"📁`{item['name']}`\n"
+                else:
+                    file_tree += f"📄{item['name']}\n"
+            embed = discord.Embed(colour=0x541dd3,  description=file_tree)
+            embed.set_author(name=f"Repository {repo}" ,
+                            url=f"https://github.com/{owner}/{repo}")
+            await ctx.respond(embed=embed)
+        else:
+            await ctx.respond("Sorry! I could not find the folder you requested.")
 
 def setup(bot):
     """Function to setup the cog"""
