@@ -65,10 +65,10 @@ class GithubInfo(commands.Cog):
         if r.status_code == 200:
             data = r.json()
             body = f"""◉ **Author:** [{data['author']['login']}]({data['author']['html_url']})
-                       ◉ **Message:** `{data['commit']['message']}`
+                       ◉ **Message:** ```{data['commit']['message']}```
                        ◉ **Created at:** `{parse_date(data['commit']['committer']['date'])}`"""
             embed = discord.Embed(colour=0x541dd3, description=body)
-            embed.set_author(name=f"Commit {ref}" ,
+            embed.set_author(name=f"Repository {repo}\nCommit {ref}" ,
                             url=data['html_url'])
             embed.set_thumbnail(url=data['author']['avatar_url'])
 
@@ -121,7 +121,7 @@ class GithubInfo(commands.Cog):
                             ◉ **Closed at:** `{parse_date(data['closed_at'])}`"""
 
             embed = discord.Embed(colour=0x541dd3, description=body)
-            embed.set_author(name=f"Issue {data['number']}, {data['title']}" ,
+            embed.set_author(name=f"Repository {repo}\nIssue {data['number']}, {data['title']}" ,
                             url=data['html_url'])
             embed.set_thumbnail(url=data['user']['avatar_url'])
 
@@ -148,7 +148,7 @@ class GithubInfo(commands.Cog):
                        ◉ **Assets:**\n[Source code (zip)]({data['zipball_url']})
                             [Source code (tar)]({data['tarball_url']})\n"""
             embed = discord.Embed(colour=0x541dd3, description=body)
-            embed.set_author(name=f"Release {data['name']}" ,
+            embed.set_author(name=f"Repository {repo}\nRelease {data['name']}" ,
                             url=data['html_url'])
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check release"))
@@ -168,8 +168,7 @@ class GithubInfo(commands.Cog):
             data = r.json()
 
             if isinstance(data, list):
-                await ctx.respond("""❌ *Sorry, it seems the path you provided leads
-                                   to a folder rather than a file.*""")
+                await ctx.respond("""❌ *Sorry, it seems the path you provided leads to a folder rather than a file.*""")
                 return 1
 
             file_content = data['content']
@@ -184,7 +183,7 @@ class GithubInfo(commands.Cog):
                        [Get file]({data['download_url']})"""
 
             embed = discord.Embed(colour=0x541dd3, description=body)
-            embed.set_author(name=f"File {data['name']}" ,
+            embed.set_author(name=f"Repository {repo}\nFile {data['name']}" ,
                             url=data['html_url'])
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check file"))
@@ -242,6 +241,39 @@ class GithubInfo(commands.Cog):
             await ctx.respond(embed=embed)
         else:
             await ctx.respond("🤔 *Sorry! I could not find the repository you requested.*")
+
+    @gh_info.command(name='pull-request', description='Get detailed information on a pull request')
+    @option("owner", description="Enter the owner of the repository")
+    @option("repo", description="Enter the name of the repository")
+    @option("ref", description="Enter the number of the pull request")
+    async def pull_request_info_command(self, ctx, owner, repo, ref):
+        """Command to get pull request information"""
+        url = f"{BASE_URL}/repos/{owner}/{repo}/pulls/{ref}"
+        r = requests.get(url, timeout=30)
+
+        if r.status_code == 200:
+            data = r.json()
+            body = f"""◉ **Author:** [{data['user']['login']}]({data['user']['html_url']})
+                       ◉ **Title:** {data['title']}
+                       ◉ **Description:** ```{data['body']}```
+                       ◉ **State:** `{data['state']}`
+                       ◉ **Created at:** `{parse_date(data['created_at'])}`"""
+
+            if data['state'] == "closed":
+                body += f"""\n◉ **Merged at:** `{parse_date(data['merged_at'])}`
+                              ◉ **Closed at:** `{parse_date(data['closed_at'])}`"""
+
+            body += f"""\n\n This pull request has **{data['changed_files']} changed files**, **{data['additions']} additions**, **{data['deletions']} deletions**, and **{data['commits']} commits**."""
+            embed = discord.Embed(colour=0x541dd3, description=body)
+            embed.set_author(name=f"Repository {repo}\nPull request {data['number']} " ,
+                            url=data['html_url'])
+            embed.set_thumbnail(url=data['user']['avatar_url'])
+
+            await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check pull request"))
+        else:
+            await ctx.respond("🤔 *Sorry! I could not find the pull request you requested.*")
+
+
 
 def setup(bot):
     """Function to setup the cog"""
