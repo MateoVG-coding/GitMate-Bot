@@ -36,13 +36,26 @@ class WebhookManager(commands.Cog):
 
         webhook = await channel.create_webhook(name=name, avatar=avatar)
         body = f"""◉ **Url:** ```{webhook.url}```
-               ◉ **Channel:** {channel.mention}"""
+                   ◉ **Id:** `{webhook.id}`
+                   ◉ **Channel:** {channel.mention}"""
 
         embed = discord.Embed(colour=0x541dd3, description=body)
         embed.set_author(name=f"Webhook {webhook.name}",
                         url=f"{webhook.url}", icon_url=icon_url)
 
         await ctx.respond(embed=embed, ephemeral=True)
+
+    @webhook_mang.command(name='delete', description='Delete a webhook by URL')
+    @option("channel", description="Enter the channel of this webhook")
+    @option("id", description="Enter the ID of the webhook to delete")
+    async def delete_webhook(self, ctx, channel: discord.TextChannel, webhook_id):
+        """Command to delete a webhook by URL"""
+
+        if not channel.permissions_for(ctx.author).manage_webhooks:
+            return await ctx.send("😕 *Sorry, it seems you do not have permission to manage webhooks in this channel.*")
+
+        await ctx.bot.http.request(discord.http.Route('DELETE', f'/webhooks/{webhook_id}'))
+        await ctx.respond("✅ *Webhook deleted successfully!*", ephemeral=True)
 
 def is_valid_icon_url(url):
     """Function to check if the icon url is valid"""
