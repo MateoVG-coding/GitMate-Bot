@@ -6,6 +6,7 @@ load_dotenv()
 bot = discord.Bot()
 
 bot.load_extension('cogs.github_info')
+bot.load_extension('cogs.webhook_manager')
 
 @bot.event
 async def on_ready():

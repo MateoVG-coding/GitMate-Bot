@@ -51,7 +51,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check user"))
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the user you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the user you requested.*", ephemeral=True)
 
     @gh_info.command(name='commit', description='Get detailed information on a commit')
     @option("owner", description="Enter the owner of the repository")
@@ -74,7 +74,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check commit"))
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the commit you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the commit you requested.*", ephemeral=True)
 
     @gh_info.command(name='branches', description='Get list of branches in a repository')
     @option("owner", description="Enter the owner of the repository")
@@ -97,7 +97,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed)
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the repository you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the repository you requested.*", ephemeral=True)
 
     @gh_info.command(name='issue', description='Get detailed information on an issue')
     @option("owner", description="Enter the owner of the repository")
@@ -127,7 +127,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check issue"))
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the issue you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the issue you requested.*", ephemeral=True)
 
     @gh_info.command(name='release', description='Get detailed information on an release')
     @option("owner", description="Enter the owner of the repository")
@@ -153,7 +153,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check release"))
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the release you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the release you requested.*", ephemeral=True)
 
     @gh_info.command(name='file', description='Get content of a file in a repository')
     @option("owner", description="Enter the owner of the repository")
@@ -168,8 +168,7 @@ class GithubInfo(commands.Cog):
             data = r.json()
 
             if isinstance(data, list):
-                await ctx.respond("""❌ *Sorry, it seems the path you provided leads to a folder rather than a file.*""")
-                return 1
+                return await ctx.respond("❌ *Sorry, it seems the path you provided leads to a folder rather than a file.*", ephemeral=True)
 
             file_content = data['content']
             file_content_encoding = data.get('encoding')
@@ -188,7 +187,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check file"))
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the file you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the file you requested.*", ephemeral=True)
 
     @gh_info.command(name='folder', description='Get content of a folder in a repository')
     @option("owner", description="Enter the owner of the repository")
@@ -215,7 +214,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed)
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the folder you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the folder you requested.*", ephemeral=True)
 
     @gh_info.command(name='workflows', description='Get list of workflows in a repository')
     @option("owner", description="Enter the owner of the repository")
@@ -240,7 +239,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed)
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the repository you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the repository you requested.*", ephemeral=True)
 
     @gh_info.command(name='pull-request', description='Get detailed information on a pull request')
     @option("owner", description="Enter the owner of the repository")
@@ -271,7 +270,7 @@ class GithubInfo(commands.Cog):
 
             await ctx.respond(embed=embed, view=GithubLink(data['html_url'], "Check pull request"))
         else:
-            await ctx.respond("🤔 *Sorry! I could not find the pull request you requested.*")
+            await ctx.respond("🤔 *Sorry! I could not find the pull request you requested.*", ephemeral=True)
 
 
 
