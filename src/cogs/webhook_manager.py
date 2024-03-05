@@ -1,5 +1,5 @@
-import requests
 from io import BytesIO
+import requests
 import discord
 from discord.ext import commands
 from discord.commands import SlashCommandGroup, option
@@ -13,7 +13,7 @@ class WebhookManager(commands.Cog):
 
     webhook_mang = SlashCommandGroup(
         "webhook", "Manage GitHub webhooks for your Discord channels and receive updates from your repositories")
-    
+
     @webhook_mang.command(name='create', description='Create a webhook for a Discord channel')
     @option("channel", description="Enter the channel for this webhook")
     @option("name", description="Enter the name for the webhook")
@@ -28,7 +28,7 @@ class WebhookManager(commands.Cog):
             if not is_valid_icon_url(icon_url):
                 return await ctx.respond("❌ *Sorry, it seems the icon url you provided is invalid.*", ephemeral=True)
 
-            response = requests.get(icon_url)
+            response = requests.get(icon_url, timeout=30)
             icon_bytes = BytesIO(response.content)
             avatar = icon_bytes.read()
         else:
@@ -43,11 +43,11 @@ class WebhookManager(commands.Cog):
                         url=f"{webhook.url}", icon_url=icon_url)
 
         await ctx.respond(embed=embed, ephemeral=True)
-    
+
 def is_valid_icon_url(url):
     """Function to check if the icon url is valid"""
     try:
-        response = requests.head(url)
+        response = requests.head(url, timeout=30)
         return response.status_code == 200
     except requests.RequestException:
         return False
