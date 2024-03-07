@@ -41,7 +41,7 @@ class GithubInfo(commands.Cog):
             if data['bio']:
                 body += f"\n◉ **Bio:** ```{data['bio']}```"
 
-            body += f"""\n\n◉ **Repositories:** {data['public_repos']}\n◉ **Followers:** {data['followers']}\n◉ **Following:** {data['following']}\n"""
+            body += f"""\n\n◉ **Repositories:** `{data['public_repos']}`\n◉ **Followers:** `{data['followers']}`\n◉ **Following:** `{data['following']}`\n"""
 
             if data['location']:
                 body += f"\n◉ **Location:** 📍{data['location']}"
