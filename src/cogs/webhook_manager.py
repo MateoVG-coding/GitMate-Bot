@@ -23,8 +23,8 @@ class WebhookManager(commands.Cog):
 
         webhook = await channel.create_webhook(name=name)
         body = f"""◉ **Url:** ```{webhook.url}```
-                   ◉ **Id:** `{webhook.id}`
-                   ◉ **Channel:** {channel.mention}"""
+◉ **Id:** `{webhook.id}`
+◉ **Channel:** {channel.mention}"""
 
         embed = discord.Embed(colour=0x541dd3, description=body)
         embed.set_author(name=f"Webhook {webhook.name}",
@@ -44,8 +44,8 @@ class WebhookManager(commands.Cog):
         await ctx.bot.http.request(discord.http.Route('DELETE', f'/webhooks/{webhook_id}'))
         await ctx.respond("✅ *Webhook deleted successfully!*", ephemeral=True)
 
-    @webhook_mang.command(name='list-existing', description='Get list of webhooks existing in a channel.')
-    @option("channel", description="Enter the channel you want to get the list of existing webhooks from")
+    @webhook_mang.command(name='list-existing', description='Get list of existing webhooks in a channel.')
+    @option("channel", description="Enter the channel you want to get list of existing webhooks from")
     async def list_webhooks(self, ctx, channel: discord.TextChannel):
         """Command to get existing webhooks in a channel"""
         if not channel.permissions_for(ctx.author).manage_webhooks:
