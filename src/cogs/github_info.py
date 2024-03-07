@@ -34,15 +34,17 @@ class GithubInfo(commands.Cog):
 
         if r.status_code == 200:
             data = r.json()
-            body = f"""◉ **Name:** {data['name']}
-◉ **Created at:** `{parse_date(data['created_at'])}`
-◉ **Company:** {data['company']}
-◉ **Blog:** {data['blog']}
-◉ **Bio:** ```{data['bio']}```\n
-◉ **Repositories:** {data['public_repos']}
-◉ **Followers:** {data['followers']}
-◉ **Following:** {data['following']}\n
-◉ **Location:** 📍{data['location']}"""
+            body = f"◉ **Name:** {data['name']}\n◉ **Created at:** `{parse_date(data['created_at'])}`"
+
+            if data['blog'] != "":
+                body += f"\n◉ **Blog:** {data['blog']}"
+            if data['bio']:
+                body += f"\n◉ **Bio:** ```{data['bio']}```"
+
+            body += f"""\n\n◉ **Repositories:** {data['public_repos']}\n◉ **Followers:** {data['followers']}\n◉ **Following:** {data['following']}\n"""
+
+            if data['location']:
+                body += f"\n◉ **Location:** 📍{data['location']}"
 
             embed = discord.Embed(colour=0x541dd3, description=body)
             embed.set_author(name=username,
